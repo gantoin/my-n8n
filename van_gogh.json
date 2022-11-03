@@ -1,0 +1,321 @@
+{
+  "name": "van_gogh",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1ab39542-d53f-40fd-836c-50f3bb1853c0",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "-1001544249404",
+        "binaryData": true,
+        "binaryPropertyName": "=data",
+        "additionalFields": {}
+      },
+      "id": "13feaa4d-61db-4980-8265-6744ff832f2f",
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1320,
+        360
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "2",
+          "name": "UnexpectedBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://en.wikipedia.org/wiki/Special:Random",
+        "responseFormat": "string",
+        "options": {}
+      },
+      "id": "286f83a6-6b4e-49f5-9ca4-fb78c962ca14",
+      "name": "HTTP Request1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        420,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "extractionValues": {
+          "values": [
+            {
+              "cssSelector": "#firstHeading > span"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "aff821dc-f5a0-41d7-b3f0-9cc0ada24050",
+      "name": "HTML Extract",
+      "type": "n8n-nodes-base.htmlExtract",
+      "typeVersion": 1,
+      "position": [
+        520,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://172.18.0.3:5000/generate",
+        "options": {},
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "prompt",
+              "value": "=Impressionist painting of {{ $json[\"\"] }} by Vincent van Gogh"
+            }
+          ]
+        }
+      },
+      "id": "1a188b97-1dd3-4646-8232-ed94f84bd780",
+      "name": "Generate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        700,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "return items[0].json.map(item => {\n  return {\n    json: item\n  }\n});"
+      },
+      "id": "009226ac-fce5-4d2c-8ebe-935293fbe89a",
+      "name": "Tab to multiple items",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        900,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json[\"0\"][\"generation\"][\"image_path\"] }} {{ $json[\"generation\"][\"image_path\"] }}",
+        "responseFormat": "file",
+        "options": {}
+      },
+      "id": "5a510b76-5ca3-416c-89eb-121daf23fa14",
+      "name": "Images data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendMediaGroup",
+        "chatId": "-1001745671284",
+        "media": {
+          "media": [
+            {
+              "media": "={{ $json[\"data\"][0][\"result\"][\"photo\"][0][\"file_id\"] }}",
+              "additionalFields": {
+                "caption": "={{ $node[\"HTML Extract\"].json[\"\"] }}"
+              }
+            },
+            {
+              "media": "={{ $json[\"data\"][1][\"result\"][\"photo\"][0][\"file_id\"] }}",
+              "additionalFields": {
+                "caption": "={{ $node[\"HTML Extract\"].json[\"\"] }}"
+              }
+            },
+            {
+              "media": "={{ $json[\"data\"][2][\"result\"][\"photo\"][0][\"file_id\"] }}",
+              "additionalFields": {
+                "caption": "={{ $node[\"HTML Extract\"].json[\"\"] }}"
+              }
+            },
+            {
+              "media": "={{ $json[\"data\"][3][\"result\"][\"photo\"][0][\"file_id\"] }}",
+              "additionalFields": {
+                "caption": "={{ $node[\"HTML Extract\"].json[\"\"] }}"
+              }
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "id": "27bfccb2-7a5a-4ed2-b70b-a3f0669de76e",
+      "name": "Telegram1",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1460,
+        600
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "2",
+          "name": "UnexpectedBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "aggregateItems",
+        "aggregate": "aggregateAllItemData"
+      },
+      "id": "4a0faec6-a534-410a-8643-f11ceb620d82",
+      "name": "Item Lists1",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 1,
+      "position": [
+        1500,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyWeek",
+              "hour": 11
+            },
+            {
+              "mode": "everyWeek",
+              "hour": 11,
+              "weekday": "3"
+            },
+            {
+              "mode": "everyWeek",
+              "hour": 11,
+              "weekday": "5"
+            },
+            {
+              "mode": "everyWeek",
+              "hour": 11,
+              "weekday": "0"
+            }
+          ]
+        }
+      },
+      "id": "c9442cf4-0d52-4f2e-b98d-6888a2e5445b",
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        240,
+        140
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "HTML Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML Extract": {
+      "main": [
+        [
+          {
+            "node": "Generate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate": {
+      "main": [
+        [
+          {
+            "node": "Tab to multiple items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tab to multiple items": {
+      "main": [
+        [
+          {
+            "node": "Images data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Images data": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram": {
+      "main": [
+        [
+          {
+            "node": "Item Lists1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item Lists1": {
+      "main": [
+        [
+          {
+            "node": "Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "id": 1,
+  "meta": {
+    "instanceId": "120705dd19845a297a2dbdf5a6e315211e85b87bad6c2af673f72510d514b57b"
+  },
+  "tags": []
+}
